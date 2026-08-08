@@ -1,0 +1,58 @@
+#!/bin/bash
+
+cat << "EOF"
+
+         ┃┃┏┫┓┏┏┓╋
+         ┗┛┗┻┗┫┗┻┗
+       Version: 1.0
+
+EOF
+
+echo " Usage: $0 [IP_TARGET] [START PORT] [END PORT]"
+
+HOST=$1
+START=$2
+END=$3
+
+if [ -z "$HOST" ] || [ -z "$START" ] || [ -z "$END" ]; then
+  echo " Usage: $0 [IP_TARGET] [START PORT] [END PORT]"
+  exit 1
+fi
+
+echo " SCANNING $HOST FROM $START UNTIL $END "
+cat << "EOF"
+                                                           █
+                       ██████████████████ █            █
+                  ██████████      █   █ ████████████ ██
+                ██████  █  █
+             █████        ███ ███████████
+                       ███████████      █ ███     ██
+               █    ███████  ██ ██            ██   ██
+                 ████    ████████           █ █ ██
+               ██████       ██            █ ███
+                    █████                 █   █  ██
+                        ███        ████ ████████
+                    ███ ██ ██ █   █████   ████    ██
+                     █████ ███            ███ ██
+                       ██  █ ███
+                       ██  █  ██ █
+                         ███   ██ █                  ███████
+                          ██     ██ █               ████   ██
+                          ██      ██████                   ██
+                                     █████ █              ███
+                           █              ██████ ██   █████
+                                                  █ █
+EOF
+
+
+for i in $(seq "$START" "$END"); do
+  (echo > /dev/tcp/$HOST/$i) 2>/dev/null && echo "PORT $i: OPEN"
+done
+
+for PORT in $(seq $START $END); do
+    (timeout 1 bash -c "echo > /dev/tcp/$HOST/$PORT") 2>/dev/null && echo "Porta $PORT: OPEN"
+done
+
+echo "__________________SCAN FINISHED____________________"
+
+

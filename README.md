@@ -1,4 +1,4 @@
-echo "# Port Scanner Bash
+echo "# Port Scanner in Bash script
 
 Simple Port scan for learning purposes.
 

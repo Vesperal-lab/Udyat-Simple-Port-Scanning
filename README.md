@@ -39,7 +39,3 @@ A timeout wrapper is used around each connection attempt to prevent the script f
 Disclaimer
 
 This tool is intended for educational purposes and authorized security testing only. Only scan hosts and networks you own or have explicit permission to test. Unauthorized port scanning of systems you do not own may be illegal depending on your jurisdiction.
-
-License
-
-This project is licensed under the MIT License.

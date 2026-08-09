@@ -8,6 +8,23 @@
 - Improved invalid option handling
 - Logo updated
 - CIDR suport
+- 
+#### Improved
+
+* Better handling of invalid options during the `/16` confirmation prompt.
+* Proper scan cancellation when `N` or an empty input is provided.
+* Clearer error messages for invalid input.
+* Improved execution flow and input handling.
+
+#### Current Features
+
+* TCP connect scanning using `/dev/tcp`.
+* `/24` and `/16` network support.
+* Custom starting and ending ports.
+* 3-second connection timeout.
+* Basic service identification based on port numbers.
+* Input validation and error handling.
+* Warning before potentially large scans.
 
 Udyat Simple Port Scanning
 
@@ -30,13 +47,13 @@ chmod +x Udyat
 
 Example:
 
-./Udyat 127.0.0.1 1 1000
+./Udyat 192.xxx.x.x/24 1 255
 
 Output:
 
-SCANNING 127.0.0.1 FROM 1 UNTIL 1000
-PORT 22: OPEN
-PORT 80: OPEN
+𓂀 SCANNING 192.xxx.x.x/24 FROM 1 UNTIL 255 𓂀
+IP: 192.xxx.x.x PORT 53 (DNS): OPEN
+IP: 192.xxx.x.x PORT 80 (HTTP): OPEN
 __________________SCAN FINISHED____________________
 How it works
 
@@ -50,3 +67,11 @@ A timeout wrapper is used around each connection attempt to prevent the script f
 Disclaimer
 
 This tool is intended for educational purposes and authorized security testing only. Only scan hosts and networks you own or have explicit permission to test. Unauthorized port scanning of systems you do not own may be illegal depending on your jurisdiction.
+
+### Roadmap
+
+* [ ] Banner grabbing
+* [ ] Advanced IPv4 validation
+* [ ] Concurrent scanning
+* [ ] Improved service detection
+* [ ] Result export

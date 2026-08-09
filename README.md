@@ -1,3 +1,14 @@
+## Changelog
+
+### v1.2
+- Added START/END port validation
+- Added /16 network warning
+- Added confirmation before scanning /16
+- Improved cancellation handling
+- Improved invalid option handling
+- Logo updated
+- CIDR suport
+
 Udyat Simple Port Scanning
 
 A simple TCP port scanner written in pure Bash, using the shell's built-in /dev/tcp pseudo-device to test connections without relying on external tools like nmap or nc.

@@ -4,55 +4,91 @@ cat << "EOF"
 
          ┃┃┏┫┓┏┏┓╋
          ┗┛┗┻┗┫┗┻┗
-       Version: 1.0
+       Version: 1.2
 
 EOF
-
-echo " Usage: $0 [IP_TARGET] [START PORT] [END PORT]"
 
 HOST=$1
 START=$2
 END=$3
 
-if [ -z "$HOST" ] || [ -z "$START" ] || [ -z "$END" ]; then
+if [ -z "$HOST" ] || [ -z "$START" ] || [ -z "$END" ] ; then
   echo " Usage: $0 [IP_TARGET] [START PORT] [END PORT]"
+  echo " Example: $0 192.x.x.x/24 1 100 "
+  exit 1
+elif [ "$START" -gt "$END" ]; then
+  echo " the start need to be less than the end... "
   exit 1
 fi
 
-echo " SCANNING $HOST FROM $START UNTIL $END "
-cat << "EOF"
-                                                           █
-                       ██████████████████ █            █
-                  ██████████      █   █ ████████████ ██
-                ██████  █  █
-             █████        ███ ███████████
-                       ███████████      █ ███     ██
-               █    ███████  ██ ██            ██   ██
-                 ████    ████████           █ █ ██
-               ██████       ██            █ ███
-                    █████                 █   █  ██
-                        ███        ████ ████████
-                    ███ ██ ██ █   █████   ████    ██
-                     █████ ███            ███ ██
-                       ██  █ ███
-                       ██  █  ██ █
-                         ███   ██ █                  ███████
-                          ██     ██ █               ████   ██
-                          ██      ██████                   ██
-                                     █████ █              ███
-                           █              ██████ ██   █████
-                                                  █ █
-EOF
 
+IP_BASE=$(echo "$HOST" | cut -d'/' -f1)
+SUBMASK=$(echo "$HOST" | cut -d'/' -f2)
 
-for i in $(seq "$START" "$END"); do
-  (echo > /dev/tcp/$HOST/$i) 2>/dev/null && echo "PORT $i: OPEN"
+IFS='.' read -r O1 O2 O3 O4 <<< "$IP_BASE"
+
+for OCTET in "$O1" "$O2" "$O3" "$O4"; do
+    if ! [[ "$OCTET" =~ ^[0-9]+$ ]] || [ "$OCTET" -gt 255 ]; then
+        echo "Try to input a valid IPv4 address."
+        exit 1
+    fi
 done
 
-for PORT in $(seq $START $END); do
-    (timeout 1 bash -c "echo > /dev/tcp/$HOST/$PORT") 2>/dev/null && echo "Porta $PORT: OPEN"
-done
+generate_ip() {
+  if [ "$SUBMASK" == "24" ] || [ "$SUBMASK" == "" ]; then
+    for j in $(seq 1 254); do
+      echo "$O1.$O2.$O3.$j"
+    done
+  elif [ "$SUBMASK" == '16' ]; then
+    echo "WARNING: /16 network selected. This may generate a large number of connection attempts. Continue? [y/N]"
+    read resposta
+      case "$resposta" in
+          y)
+            for j in $(seq 0 255); do
+              for f in $(seq 1 254); do
+                echo "$O1.$O2.$j.$f"
+            done
+          done
+          ;;
+          N|"")
+            echo "Canceling..."
+            ;;
+          *)
+            echo "Invalid option..."
+            exit 1
+            ;;
+      esac
+    else echo "Unavailable prefix, only accept /24 or /16 "
+    exit 1
+  fi
+}
 
+echo "𓂀 SCANNING $HOST FROM $START UNTIL $END 𓂀"
+
+while read -r CURRENT_IP; do
+  for PORT in $(seq "$START" "$END"); do
+    if (timeout 3 bash -c "echo > /dev/tcp/$CURRENT_IP/$PORT") 2>/dev/null; then
+      SERVICE=$(case $PORT in
+        21) echo "FTP" ;;
+        22) echo "SSH" ;;
+        23) echo "TELNET" ;;
+        25) echo "SMTP" ;;
+        53) echo "DNS" ;;
+        80) echo "HTTP" ;;
+        110) echo "POP3" ;;
+        143) echo "IMAP" ;;
+        443) echo "HTTPS" ;;
+        445) echo "SMB" ;;
+        3306) echo "MYSQL" ;;
+        3389) echo "RDP" ;;
+        5432) echo "POSTGRESQL" ;;
+        8080) echo "HTTP-ALT" ;;
+        *) echo "UNKNOWN" ;;
+      esac)
+      echo "IP: $CURRENT_IP PORT $PORT ($SERVICE): OPEN"
+    fi
+  done
+done < <(generate_ip)
 echo "__________________SCAN FINISHED____________________"
 
 

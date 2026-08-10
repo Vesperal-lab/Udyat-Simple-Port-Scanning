@@ -1,14 +1,24 @@
 ## Changelog
 
+### v1.3
+
+* Added Banner grabbing
+* Added HTTP/HTTPS Status detection
+* Added HTTP/HTTPS Server banner detection
+* Added `get_status()` function
+* Improved output with banner and status information
+
 ### v1.2
-- Added START/END port validation
-- Added /16 network warning
-- Added confirmation before scanning /16
-- Improved cancellation handling
-- Improved invalid option handling
-- Logo updated
-- CIDR suport
-- 
+
+* Added START/END port validation
+* Added /16 network warning
+* Added confirmation before scanning /16
+* Improved cancellation handling
+* Improved invalid option handling
+* Logo updated
+* CIDR support
+* Added IPv4 validation
+
 #### Improved
 
 * Better handling of invalid options during the `/16` confirmation prompt.
@@ -25,6 +35,9 @@
 * Basic service identification based on port numbers.
 * Input validation and error handling.
 * Warning before potentially large scans.
+* TCP banner grabbing.
+* HTTP/HTTPS banner grabbing using `curl`.
+* HTTP/HTTPS status detection.
 
 Udyat Simple Port Scanning
 
@@ -37,9 +50,15 @@ Pure Bash implementation, no external dependencies required
 Scans a range of TCP ports on a given host
 Uses connection timeouts to avoid hanging on filtered ports
 Simple, readable output showing which ports are open
+Basic service identification based on port numbers
+TCP banner grabbing
+HTTP/HTTPS banner and status detection
+
 Requirements
 Bash (this script relies on the /dev/tcp feature, which is not available in sh/dash or other POSIX-only shells)
 A Unix-like environment (Linux, macOS, WSL)
+curl (required for HTTP/HTTPS banner and status grabbing)
+
 Usage:
 
 chmod +x Udyat
@@ -47,20 +66,35 @@ chmod +x Udyat
 
 Example:
 
-./Udyat 192.xxx.x.x/24 1 255
+./Udyat 192.xxx.x.x/24 1 100
 
-Output:
+### Example Output
 
+```text
 𓂀 SCANNING 192.xxx.x.x/24 FROM 1 UNTIL 255 𓂀
-IP: 192.xxx.x.x PORT 53 (DNS): OPEN
-IP: 192.xxx.x.x PORT 80 (HTTP): OPEN
-__________________SCAN FINISHED____________________
+
+IP: 192.xxx.x.x PORT 22: OPEN
+EXPECTED: SSH
+BANNER: SSH-2.0-OpenSSH
+
+IP: 192.xxx.x.x PORT 80: OPEN
+EXPECTED: HTTP
+BANNER: Server: nginx
+STATUS: HTTP/1.1 200 OK
+
+******************SCAN FINISHED******************
+```
+
 How it works
 
 Bash provides a special pseudo-device path, /dev/tcp/HOST/PORT, which internally opens a TCP connection when read from or written to. This script loops through a range of ports and attempts to open a connection to each one:
 
 If the connection succeeds, the port is reported as open.
 If the connection fails or times out, nothing is reported.
+
+For HTTP and HTTPS ports, Udyat uses curl to retrieve the server banner and HTTP status from the response headers.
+
+For other TCP services, Udyat attempts to read a banner after establishing a connection.
 
 A timeout wrapper is used around each connection attempt to prevent the script from hanging on ports that are filtered by a firewall (which neither accept nor actively refuse the connection).
 
@@ -70,8 +104,9 @@ This tool is intended for educational purposes and authorized security testing o
 
 ### Roadmap
 
-* [ ] Banner grabbing
-* [ ] Advanced IPv4 validation
+* [x] Banner grabbing
+* [x] HTTP/HTTPS Status detection
+* [x] Advanced IPv4 validation
 * [ ] Concurrent scanning
 * [ ] Improved service detection
 * [ ] Result export

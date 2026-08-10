@@ -4,14 +4,15 @@ cat << "EOF"
 
          ┃┃┏┫┓┏┏┓╋
          ┗┛┗┻┗┫┗┻┗
-       Version: 1.2
+       Version: 1.3
 
 EOF
 
 HOST=$1
 START=$2
 END=$3
-
+BANNER=""
+STATUS=""
 if [ -z "$HOST" ] || [ -z "$START" ] || [ -z "$END" ] ; then
   echo " Usage: $0 [IP_TARGET] [START PORT] [END PORT]"
   echo " Example: $0 192.x.x.x/24 1 100 "
@@ -33,6 +34,12 @@ for OCTET in "$O1" "$O2" "$O3" "$O4"; do
         exit 1
     fi
 done
+
+get_status() {
+  HEADERS=$(curl -skI "http$ts://$CURRENT_IP:$PORT")
+  STATUS=$(echo "$HEADERS" | head -n 1)
+  BANNER=$(echo "$HEADERS" | grep -i "^Server:")
+}
 
 generate_ip() {
   if [ "$SUBMASK" == "24" ] || [ "$SUBMASK" == "" ]; then
@@ -67,25 +74,50 @@ echo "𓂀 SCANNING $HOST FROM $START UNTIL $END 𓂀"
 
 while read -r CURRENT_IP; do
   for PORT in $(seq "$START" "$END"); do
-    if (timeout 3 bash -c "echo > /dev/tcp/$CURRENT_IP/$PORT") 2>/dev/null; then
-      SERVICE=$(case $PORT in
-        21) echo "FTP" ;;
-        22) echo "SSH" ;;
-        23) echo "TELNET" ;;
-        25) echo "SMTP" ;;
-        53) echo "DNS" ;;
-        80) echo "HTTP" ;;
-        110) echo "POP3" ;;
-        143) echo "IMAP" ;;
-        443) echo "HTTPS" ;;
-        445) echo "SMB" ;;
-        3306) echo "MYSQL" ;;
-        3389) echo "RDP" ;;
-        5432) echo "POSTGRESQL" ;;
-        8080) echo "HTTP-ALT" ;;
-        *) echo "UNKNOWN" ;;
-      esac)
-      echo "IP: $CURRENT_IP PORT $PORT ($SERVICE): OPEN"
+    if (timeout 2 bash -c "echo > /dev/tcp/$CURRENT_IP/$PORT") 2>/dev/null; then
+      case $PORT in
+        21) EXPECTED_SERVICE="FTP" ;;
+        22) EXPECTED_SERVICE="SSH" ;;
+        23) EXPECTED_SERVICE="TELNET" ;;
+        25) EXPECTED_SERVICE="SMTP" ;;
+        53) EXPECTED_SERVICE="DNS" ;;
+        80) EXPECTED_SERVICE="HTTP" ;;
+        110) EXPECTED_SERVICE="POP3" ;;
+        143) EXPECTED_SERVICE="IMAP" ;;
+        443) EXPECTED_SERVICE="HTTPS" ;;
+        445) EXPECTED_SERVICE="SMB" ;;
+        3306) EXPECTED_SERVICE="MYSQL" ;;
+        3389) EXPECTED_SERVICE="RDP" ;;
+        5432) EXPECTED_SERVICE="POSTGRESQL" ;;
+        8080) EXPECTED_SERVICE="HTTP-ALT" ;;
+        *) EXPECTED_SERVICE="UNKNOWN" ;;
+      esac
+      ts=""
+      if [ "$PORT" == "80" ] || [ "$PORT" == "443" ]; then
+
+        if [ "$PORT" == "443" ]; then
+          ts="s"
+          else
+            ts=""
+        fi
+          get_status
+      else
+        exec 3<>/dev/tcp/$CURRENT_IP/$PORT
+        echo "A" >&3
+        timeout 3 read -r -u 3 BANNER
+        exec 3>&-
+      fi
+      if [ -z "$BANNER" ]; then
+        BANNER="UNKNOWN"
+      fi
+      echo "IP: $CURRENT_IP PORT $PORT: OPEN"
+      echo "EXPECTED: $EXPECTED_SERVICE"
+      echo "BANNER: $BANNER"
+      if [ "$PORT" == "443" ] || [ "$PORT" == "80" ]; then
+        echo "STATUS: $STATUS"
+      fi
+      BANNER=""
+      STATUS=""
     fi
   done
 done < <(generate_ip)

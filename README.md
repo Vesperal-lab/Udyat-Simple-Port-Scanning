@@ -54,15 +54,6 @@ It currently performs TCP connect scanning and
 does not implement SYN scanning, UDP scanning,
 service fingerprinting, or concurrent scanning.
 
-Features
-Pure Bash implementation, no external dependencies required
-Scans a range of TCP ports on a given host
-Uses connection timeouts to avoid hanging on filtered ports
-Simple, readable output showing which ports are open
-Basic service identification based on port numbers
-TCP banner grabbing
-HTTP/HTTPS banner and status detection
-
 Requirements
 Bash (this script relies on the /dev/tcp feature, which is not available in sh/dash or other POSIX-only shells)
 A Unix-like environment (Linux, macOS, WSL)

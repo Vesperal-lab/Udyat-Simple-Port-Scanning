@@ -45,6 +45,15 @@ A simple TCP port scanner written in pure Bash, using the shell's built-in /dev/
 
 This project was built as a learning exercise in networking fundamentals and beginner-level penetration testing.
 
+
+## Limitations
+
+This scanner is not intended to replace Nmap.
+
+It currently performs TCP connect scanning and
+does not implement SYN scanning, UDP scanning,
+service fingerprinting, or concurrent scanning.
+
 Features
 Pure Bash implementation, no external dependencies required
 Scans a range of TCP ports on a given host
@@ -101,6 +110,18 @@ A timeout wrapper is used around each connection attempt to prevent the script f
 Disclaimer
 
 This tool is intended for educational purposes and authorized security testing only. Only scan hosts and networks you own or have explicit permission to test. Unauthorized port scanning of systems you do not own may be illegal depending on your jurisdiction.
+
+## What I learned
+
+This project helped me understand:
+
+- TCP connection establishment
+- Port states
+- Network CIDR notation
+- Bash /dev/tcp
+- Connection timeouts
+- Input validation
+- Network scanning limitations
 
 ### Roadmap
 
